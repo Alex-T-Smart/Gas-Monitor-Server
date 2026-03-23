@@ -47,8 +47,10 @@ const twilioClient = twilio(
 );
 
 // Serve dashboard
+const path = require('path');
+
 app.get('/', (req, res) => {
-    res.sendFile('C:\\Users\\Alex\\Documents\\Gas-Monitor-Server\\dashboard.html');
+    res.sendFile(path.join(__dirname, 'dashboard.html'));
 });
 
 // Get all devices (list of device IDs)
