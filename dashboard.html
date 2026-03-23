@@ -225,12 +225,10 @@
                 const devices = await response.json();
                 
                 const select = document.getElementById('deviceSelect');
-                // Clear existing options (keep the first "Select a device" option)
                 while (select.options.length > 1) {
                     select.remove(1);
                 }
                 
-                // Add each device to dropdown
                 devices.forEach(deviceId => {
                     const option = document.createElement('option');
                     option.value = deviceId;
@@ -241,7 +239,7 @@
                 if (devices.length > 0) {
                     console.log('Loaded', devices.length, 'devices');
                 } else {
-                    console.log('No devices found. Add a device using "Add Device" button.');
+                    console.log('No devices found.');
                 }
             } catch (err) {
                 console.error('Error loading devices:', err);
@@ -251,7 +249,6 @@
         
         async function addDeviceToList(deviceId) {
             const select = document.getElementById('deviceSelect');
-            // Check if already exists
             for (let i = 0; i < select.options.length; i++) {
                 if (select.options[i].value === deviceId) {
                     showMessage('Device already exists', 'error');
@@ -259,7 +256,6 @@
                 }
             }
             
-            // Save device to server with default settings
             try {
                 await fetch(API_URL + '/api/device/' + deviceId, {
                     method: 'POST',
@@ -333,7 +329,6 @@
             });
             container.innerHTML = html;
             
-            // Add delete event listeners
             document.querySelectorAll('.delete').forEach(btn => {
                 btn.addEventListener('click', () => deleteNumber(parseInt(btn.dataset.id)));
             });
@@ -432,7 +427,8 @@
                 if (response.ok) {
                     showMessage('Settings saved!', 'success');
                 } else {
-                    showMessage('Error saving settings', 'error');
+                    const error = await response.json();
+                    showMessage('Error: ' + (error.error || 'Failed to save'), 'error');
                 }
             } catch (err) {
                 showMessage('Error: ' + err.message, 'error');
@@ -470,7 +466,6 @@
         document.addEventListener('DOMContentLoaded', async () => {
             console.log('Dashboard loaded');
             
-            // Load all devices automatically
             await loadDeviceList();
             
             document.getElementById('addDeviceBtn').addEventListener('click', () => {
