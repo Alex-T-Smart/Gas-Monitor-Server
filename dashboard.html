@@ -130,11 +130,6 @@
         .row .form-group {
             flex: 1;
         }
-        .loading {
-            text-align: center;
-            padding: 20px;
-            color: #666;
-        }
     </style>
 </head>
 <body>
@@ -238,12 +233,9 @@
                 
                 if (devices.length > 0) {
                     console.log('Loaded', devices.length, 'devices');
-                } else {
-                    console.log('No devices found.');
                 }
             } catch (err) {
                 console.error('Error loading devices:', err);
-                showMessage('Error loading devices', 'error');
             }
         }
         
@@ -271,10 +263,10 @@
                 option.value = deviceId;
                 option.text = deviceId;
                 select.appendChild(option);
-                showMessage('Device added successfully!', 'success');
+                showMessage('Device added!', 'success');
                 return true;
             } catch (err) {
-                showMessage('Error adding device: ' + err.message, 'error');
+                showMessage('Error: ' + err.message, 'error');
                 return false;
             }
         }
@@ -299,10 +291,9 @@
                 document.getElementById('peopleCount').value = device.peopleCount || '1';
                 
                 loadPhoneNumbers(device.phoneNumbers || []);
-                showMessage('Device loaded successfully', 'success');
+                showMessage('Device loaded', 'success');
             } catch (err) {
-                showMessage('Error loading device: ' + err.message, 'error');
-                console.error(err);
+                showMessage('Error loading device', 'error');
             }
         }
         
@@ -316,9 +307,9 @@
             
             let html = '';
             phoneNumbers.forEach(p => {
-                const phoneId = p.phoneId || p.id;
+                const phoneId = p.id;
                 html += `
-                    <div class="phone-item" data-id="${phoneId}">
+                    <div class="phone-item">
                         <div>
                             <span class="phone-number">${p.number}</span>
                             <div style="font-size: 14px; color: #666;">${p.name || ''}</div>
@@ -340,17 +331,15 @@
             const deviceId = document.getElementById('deviceSelect').value;
             
             if (!deviceId) {
-                showMessage('Please select a device first', 'error');
+                showMessage('Select a device first', 'error');
                 return;
             }
-            
             if (!number) {
-                showMessage('Please enter a phone number', 'error');
+                showMessage('Enter a phone number', 'error');
                 return;
             }
-            
             if (!number.startsWith('+')) {
-                showMessage('Number must include country code (e.g., +27640789433)', 'error');
+                showMessage('Use country code (+27640789433)', 'error');
                 return;
             }
             
@@ -367,8 +356,7 @@
                     document.getElementById('phoneName').value = '';
                     loadDeviceData();
                 } else {
-                    const error = await response.json();
-                    showMessage('Error: ' + (error.error || 'Unknown error'), 'error');
+                    showMessage('Error adding number', 'error');
                 }
             } catch (err) {
                 showMessage('Error: ' + err.message, 'error');
@@ -377,21 +365,16 @@
         
         async function deleteNumber(phoneId) {
             const deviceId = document.getElementById('deviceSelect').value;
-            if (!confirm('Delete this phone number?')) return;
+            if (!confirm('Delete this number?')) return;
             
             try {
-                const response = await fetch(API_URL + '/api/device/' + deviceId + '/phones/' + phoneId, {
+                await fetch(API_URL + '/api/device/' + deviceId + '/phones/' + phoneId, {
                     method: 'DELETE'
                 });
-                
-                if (response.ok) {
-                    showMessage('Number deleted', 'success');
-                    loadDeviceData();
-                } else {
-                    showMessage('Error deleting number', 'error');
-                }
+                showMessage('Number deleted', 'success');
+                loadDeviceData();
             } catch (err) {
-                showMessage('Error: ' + err.message, 'error');
+                showMessage('Error deleting', 'error');
             }
         }
         
@@ -402,16 +385,13 @@
             const peopleCount = document.getElementById('peopleCount').value;
             
             if (!deviceId) {
-                showMessage('Please select a device first', 'error');
+                showMessage('Select a device first', 'error');
                 return;
             }
-            
             if (!location) {
-                showMessage('Please enter a location name', 'error');
+                showMessage('Enter a location name', 'error');
                 return;
             }
-            
-            showMessage('Saving settings...', 'success');
             
             try {
                 const response = await fetch(API_URL + '/api/device/' + deviceId, {
@@ -427,8 +407,7 @@
                 if (response.ok) {
                     showMessage('Settings saved!', 'success');
                 } else {
-                    const error = await response.json();
-                    showMessage('Error: ' + (error.error || 'Failed to save'), 'error');
+                    showMessage('Error saving settings', 'error');
                 }
             } catch (err) {
                 showMessage('Error: ' + err.message, 'error');
@@ -439,7 +418,7 @@
             const deviceId = document.getElementById('deviceSelect').value;
             
             if (!deviceId) {
-                showMessage('Please select a device first', 'error');
+                showMessage('Select a device first', 'error');
                 return;
             }
             
@@ -451,39 +430,25 @@
                 });
                 const results = await response.json();
                 const success = results.filter(r => r.success).length;
-                const total = results.length;
-                if (success > 0) {
-                    showMessage(`Test sent to ${success}/${total} numbers`, 'success');
-                } else {
-                    showMessage('Test failed. Check phone numbers.', 'error');
-                }
+                showMessage(`Test sent to ${success}/${results.length} numbers`, 'success');
             } catch (err) {
                 showMessage('Error: ' + err.message, 'error');
             }
         }
         
         // Setup event listeners
-        document.addEventListener('DOMContentLoaded', async () => {
-            console.log('Dashboard loaded');
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDeviceList();
             
-            await loadDeviceList();
-            
-            document.getElementById('addDeviceBtn').addEventListener('click', () => {
-                const deviceId = prompt('Enter Device ID (from LCD screen):');
-                if (deviceId && deviceId.trim()) {
-                    addDeviceToList(deviceId.trim().toUpperCase());
-                }
-            });
-            
-            document.getElementById('refreshDevicesBtn').addEventListener('click', async () => {
-                await loadDeviceList();
-                showMessage('Device list refreshed', 'success');
-            });
-            
-            document.getElementById('loadDeviceBtn').addEventListener('click', loadDeviceData);
-            document.getElementById('addNumberBtn').addEventListener('click', addNumber);
-            document.getElementById('testSMSBtn').addEventListener('click', testSMS);
-            document.getElementById('saveSettingsBtn').addEventListener('click', saveDeviceSettings);
+            document.getElementById('addDeviceBtn').onclick = () => {
+                const id = prompt('Enter Device ID from LCD:');
+                if (id) addDeviceToList(id.toUpperCase());
+            };
+            document.getElementById('refreshDevicesBtn').onclick = loadDeviceList;
+            document.getElementById('loadDeviceBtn').onclick = loadDeviceData;
+            document.getElementById('addNumberBtn').onclick = addNumber;
+            document.getElementById('testSMSBtn').onclick = testSMS;
+            document.getElementById('saveSettingsBtn').onclick = saveDeviceSettings;
         });
     </script>
 </body>
