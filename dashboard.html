@@ -325,43 +325,45 @@
             });
         }
         
-        async function addNumber() {
-            const number = document.getElementById('phoneNumber').value.trim();
-            const name = document.getElementById('phoneName').value.trim() || 'My Phone';
-            const deviceId = document.getElementById('deviceSelect').value;
-            
-            if (!deviceId) {
-                showMessage('Select a device first', 'error');
-                return;
-            }
-            if (!number) {
-                showMessage('Enter a phone number', 'error');
-                return;
-            }
-            if (!number.startsWith('+')) {
-                showMessage('Use country code (+27640789433)', 'error');
-                return;
-            }
-            
-            try {
-                const response = await fetch(API_URL + '/api/device/' + deviceId + '/phones', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ number: number, name: name })
-                });
-                
-                if (response.ok) {
-                    showMessage('Number added!', 'success');
-                    document.getElementById('phoneNumber').value = '';
-                    document.getElementById('phoneName').value = '';
-                    loadDeviceData();
-                } else {
-                    showMessage('Error adding number', 'error');
-                }
-            } catch (err) {
-                showMessage('Error: ' + err.message, 'error');
-            }
+      async function addNumber() {
+    const number = document.getElementById('phoneNumber').value.trim();
+    const name = document.getElementById('phoneName').value.trim() || 'My Phone';
+    const deviceId = document.getElementById('deviceSelect').value;
+    
+    if (!deviceId) {
+        showMessage('Select a device first', 'error');
+        return;
+    }
+    if (!number) {
+        showMessage('Enter a phone number', 'error');
+        return;
+    }
+    if (!number.startsWith('+')) {
+        showMessage('Use country code (+27640789433)', 'error');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/device/' + deviceId + '/phones', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ number: number, name: name })
+        });
+        
+        if (response.ok) {
+            showMessage('Number added!', 'success');
+            document.getElementById('phoneNumber').value = '';
+            document.getElementById('phoneName').value = '';
+            // Reload the device data to show the new number
+            loadDeviceData();
+        } else {
+            const error = await response.json();
+            showMessage('Error: ' + (error.error || 'Unknown error'), 'error');
         }
+    } catch (err) {
+        showMessage('Error: ' + err.message, 'error');
+    }
+}
         
         async function deleteNumber(phoneId) {
             const deviceId = document.getElementById('deviceSelect').value;
