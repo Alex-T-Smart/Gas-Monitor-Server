@@ -47,8 +47,6 @@ const twilioClient = twilio(
 );
 
 // Serve dashboard
-
-
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'dashboard.html'));
 });
@@ -91,6 +89,20 @@ app.post('/api/device/:deviceId', (req, res) => {
     
     saveDevices(devices);
     res.json({ success: true, device: devices[deviceId] });
+});
+
+// Delete a device (NEW ENDPOINT)
+app.delete('/api/device/:deviceId', (req, res) => {
+    const deviceId = req.params.deviceId;
+    
+    if (devices[deviceId]) {
+        delete devices[deviceId];
+        saveDevices(devices);
+        console.log('Deleted device:', deviceId);
+        res.json({ success: true, message: 'Device deleted' });
+    } else {
+        res.status(404).json({ error: 'Device not found' });
+    }
 });
 
 // Add phone number to device
